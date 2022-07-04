@@ -1,0 +1,16 @@
+{
+  "name": "entap-remote-modal",
+  "version": "1.0.0",
+  "description": "Remote Modal for bootstrap",
+  "main": "dist/RemoteModal.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Entap,Inc.",
+  "license": "ISC",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@types/bootstrap": "^5.1.12"
+  }
+}
