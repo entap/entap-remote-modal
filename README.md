@@ -87,7 +87,7 @@ npm install entap-remote-modal
 
 ## Licence
 
-[MIT](https://github.com/entap/entap-remote-modal/LICENCE)
+[MIT](https://github.com/entap/entap-remote-modal/blob/main/LICENSE)
 
 ## Author
 
