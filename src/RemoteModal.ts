@@ -1,21 +1,43 @@
 declare var bootstrap: any
 
+/**
+ * Bootstrap5のModalやOffcanvasとして、別ページのコンテンツを埋め込み表示する
+ */
 export class RemoteModal {
     protected modal: Element | null
     protected offcanvas: Element | null
 
+    /**
+     * RemoteModalのインスタンスを作成する
+     * @param url {string} 表示するURL
+     */
     public constructor(url: string) {
         this.modal = null
         this.offcanvas = null
         this.request(url)
     }
 
+    /**
+     * HTTPリクエストを送信し、レスポンスの内容を元に表示する
+     *
+     * @param url {string} URL
+     * @param method {string} リクエストメソッド
+     * @param formData {FormData} フォームデータ
+     * @protected
+     */
     protected request(url: string, method: string = 'get', formData: FormData | null = null): void {
         fetch(url, {method, body: formData, headers: {'X-Referer': location.href}})
             .then((response: Response) => response.text().then((text: string) => this.render(text, response)))
     }
 
-    protected render(text: string, response: Response) {
+    /**
+     * レスポンスの内容を元に表示する
+     *
+     * @param text {string} レスポンスの内容
+     * @param response {Response} レスポンス情報
+     * @protected
+     */
+    protected render(text: string, response: Response): void {
         const contentType = response.headers.get('Content-Type')
         if (contentType.indexOf('text/html;') == 0) {
             let parser = new DOMParser()
@@ -26,7 +48,14 @@ export class RemoteModal {
         }
     }
 
-    protected showModal(doc: Document) {
+    /**
+     * レスポンスのDOMオブジェクトを指定し、モーダルダイアログを表示する
+     *
+     * @param doc {Document} レスポンスのDOMオブジェクト
+     * @return {boolean} モーダルダイアログを表示したか？
+     * @protected
+     */
+    protected showModal(doc: Document): boolean {
         const content = this.getModalContent(doc)
         if (content) {
             if (this.modal) {
@@ -42,7 +71,14 @@ export class RemoteModal {
         }
     }
 
-    protected getModalContent(doc: Document) {
+    /**
+     * レスポンスのDOMオブジェクトから、モーダルダイアログのコンテンツを取得する
+     *
+     * @param doc {Document} レスポンスのDOMオブジェクト
+     * @return {Element} 取得したモーダルダイアログのコンテンツ
+     * @protected
+     */
+    protected getModalContent(doc: Document): Element {
         const modal = doc.getElementsByClassName('modal').item(0)
         if (modal) {
             return modal
@@ -56,7 +92,14 @@ export class RemoteModal {
         }
     }
 
-    protected showOffcanvas(doc: Document) {
+    /**
+     * レスポンスのDOMオブジェクトから、オフキャンバスを表示する
+     *
+     * @param doc {Document} レスポンスのDOMオブジェクト
+     * @return {boolean} オフキャンバスを表示したか？
+     * @protected
+     */
+    protected showOffcanvas(doc: Document): boolean {
         const content = doc.getElementsByClassName('offcanvas').item(0)
         if (content) {
             if (this.offcanvas) {
@@ -73,7 +116,14 @@ export class RemoteModal {
         }
     }
 
-    protected replacePage(doc: Document) {
+    /**
+     * レスポンスのDOMオブジェクトで、ページ全体を置き換えて表示する
+     *
+     * @param doc {Document} レスポンスのDOMオブジェクト
+     * @return {boolean} 表示に成功したか？
+     * @protected
+     */
+    protected replacePage(doc: Document): boolean {
         if (this.replaceBody(doc)) {
             this.hideModalAndOffcanvas()
             this.updateHead(doc)
@@ -83,7 +133,12 @@ export class RemoteModal {
         }
     }
 
-    protected hideModalAndOffcanvas() {
+    /**
+     * モーダルダイアログとオフキャンバスを非表示にする
+     *
+     * @protected
+     */
+    protected hideModalAndOffcanvas(): void {
         if (this.modal) {
             bootstrap.Modal.getInstance(this.modal)?.hide()
         }
@@ -92,7 +147,14 @@ export class RemoteModal {
         }
     }
 
-    protected replaceBody(doc: Document) {
+    /**
+     * bodyタグの中身を置き換える
+     *
+     * @param doc {Document} レスポンスのDOMオブジェクト
+     * @return {boolean} 表示に成功したか？
+     * @protected
+     */
+    protected replaceBody(doc: Document): boolean {
         const body = doc.documentElement.getElementsByTagName('body').item(0)
         if (body) {
             let i = 0
@@ -113,7 +175,14 @@ export class RemoteModal {
         }
     }
 
-    protected updateHead(doc: Document) {
+    /**
+     * headタグの中身を置き換える
+     *
+     * @param doc {Document} レスポンスのDOMオブジェクト
+     * @return {boolean} 表示に成功したか？
+     * @protected
+     */
+    protected updateHead(doc: Document): boolean {
         const head = doc.documentElement.getElementsByTagName('head').item(0)
         if (head) {
             if (document.head.title != head.title) {
@@ -126,7 +195,12 @@ export class RemoteModal {
         }
     }
 
-    protected rerunScript() {
+    /**
+     * スクリプトを再実行する
+     *
+     * @protected
+     */
+    protected rerunScript(): void {
         for (const elem of document.querySelectorAll('script')) {
             const script = document.createElement('script')
             for (const attributeName of elem.getAttributeNames()) {
@@ -137,29 +211,43 @@ export class RemoteModal {
         }
     }
 
-    protected prepareEventListener(content: Element, type: string, onHidden: Function) {
-        content.addEventListener('shown.bs.' + type, () => {
-            let input = content.querySelector('input:not([type=hidden]),select,textarea') as HTMLElement
+    /**
+     * モーダルダイアログまたはオフキャンバスの表示時、非表示の処理を準備する
+     *
+     * @param target {Element} モーダルダイアログまたはオフキャンバスのDOM
+     * @param type {string} modalまたはoffcanvasの文字列
+     * @param onHidden {Function} 非表示時の処理
+     * @protected
+     */
+    protected prepareEventListener(target: Element, type: string, onHidden: Function): void {
+        target.addEventListener('shown.bs.' + type, () => {
+            let input = target.querySelector('input:not([type=hidden]),select,textarea') as HTMLElement
             if (input) {
                 input.focus()
             }
         })
-        content.addEventListener('hidden.bs.' + type, () => {
-            document.body.removeChild(content)
+        target.addEventListener('hidden.bs.' + type, () => {
+            document.body.removeChild(target)
             if (onHidden) {
                 onHidden()
             }
         })
     }
 
-    protected prepareContent(content: Element) {
-        for (const form of content.getElementsByTagName('form')) {
+    /**
+     * モーダルダイアログまたはオフキャンバスのformタグとaタグのイベントをフックする
+     *
+     * @param target {Element} モーダルダイアログまたはオフキャンバスのDOM
+     * @protected
+     */
+    protected prepareContent(target: Element): void {
+        for (const form of target.getElementsByTagName('form')) {
             form.addEventListener('submit', (event) => {
                 this.request(form.action, form.method, new FormData(form))
                 event.preventDefault()
             })
         }
-        for (const anchor of content.getElementsByTagName('a')) {
+        for (const anchor of target.getElementsByTagName('a')) {
             anchor.addEventListener('click', (event) => {
                 this.request(anchor.href, 'get', null)
                 event.preventDefault()
@@ -168,6 +256,11 @@ export class RemoteModal {
     }
 }
 
+/**
+ * クリック時の処理
+ *
+ * @param event {MouseEvent} マウスイベント
+ */
 function onClick_openRemoteModal(event: MouseEvent) {
     const target = event.target as HTMLElement
     const url = target.getAttribute('href') ?? target.dataset.href
